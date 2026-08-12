@@ -124,7 +124,7 @@ No verification activities will be performed for these items, and any related is
 - Windows guest OS backup/restore scenarios -- Only RHEL guest images are used in the existing OADP test framework
 - CSI-only backup (without DataMover) -- This task targets the DataMover backup path only
 - Velero schedule-based automated backups -- Only on-demand backup/restore is tested
-- Multi-namespace backup/restore with stopped VMs -- Covered by existing multi-namespace tests (CNV-10566)
+- Multi-namespace backup/restore with stopped VMs -- Covered by existing multi-namespace tests
 - Backup/restore of VMs with hotplugged volumes -- Separate feature scope
 - Performance benchmarking of backup/restore duration for new scenarios
 
@@ -145,7 +145,7 @@ No verification activities will be performed for these items, and any related is
   - _Details:_ All tests are automated in Python/pytest within the `tests/data_protection/oadp/` directory of the openshift-virtualization-tests repository. Tests use the existing parameterized framework and Polarion markers for traceability. Target: all scenarios automated and integrated into nightly CI before CNV v5.0.0 code freeze.
 
 - [x] **Regression Testing** -- Verifies that new changes do not break existing functionality
-  - _Details:_ Existing Velero backup/restore tests (CNV-10564, CNV-10565, CNV-10566) must continue to pass. The new `stopped_vm` fixture and parameterization must not alter the behavior of existing test cases that use `stopped_vm=False`.
+  - _Details:_ Existing Velero backup/restore tests must continue to pass. The new `stopped_vm` fixture and parameterization must not alter the behavior of existing test cases that use `stopped_vm=False`.
 
 **Non-Functional**
 
@@ -167,7 +167,7 @@ No verification activities will be performed for these items, and any related is
 **Integration & Compatibility**
 
 - [x] **Compatibility Testing** -- Ensures feature works across supported platforms, versions, and configurations
-  - _Details:_ Tests validate both block and filesystem volume modes. WFFC tests validate compatibility with WaitForFirstConsumer StorageClasses. Backward compatibility is maintained by preserving existing test parameterization (CNV-10564, CNV-10565) unchanged.
+  - _Details:_ Tests validate both block and filesystem volume modes. WFFC tests validate compatibility with WaitForFirstConsumer StorageClasses. Backward compatibility is maintained by preserving existing test parameterization unchanged.
 
 - [ ] **Upgrade Testing** -- Validates upgrade paths from previous versions, data migration, and configuration preservation
   - _Details:_ N/A. Upgrade testing is not in scope for this test automation task.
@@ -272,7 +272,7 @@ The following conditions must be met before testing can begin:
   - Verify backup and restore of a running VM with WFFC StorageClass DataVolume using Velero DataMover; confirm data integrity after restore -- **P1** -- Tier 2
   - Verify backup and restore of a stopped VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored VM can be started with correct storage binding -- **P1** -- Tier 2
   - Verify data written to a VM before backup is readable after restore for both stopped VM and WFFC configurations -- **P1** -- Tier 2
-  - Verify that existing Velero backup/restore tests (CNV-10564, CNV-10565) continue to pass with the new stopped_vm parameterization added as `stopped_vm=False` -- **P1** -- Tier 2
+  - Verify that existing Velero backup/restore tests continue to pass with the new stopped_vm parameterization added as `stopped_vm=False` -- **P1** -- Tier 2
 
 ---
 
