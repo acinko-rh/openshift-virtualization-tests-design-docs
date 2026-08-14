@@ -303,15 +303,37 @@ The following conditions must be met before testing can begin:
 
 ### **III. Test Scenarios & Traceability**
 
-- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want stopped VMs and WFFC StorageClass DataVolumes covered by Velero backup/restore, so that these previously untested VM configurations are protected during disaster recovery
-  - Verify backup and restore of a stopped VM with block volume mode DataVolume using Velero DataMover; confirm the restored VM's specification and DataVolume metadata match the original, the VM can be started, and data is intact -- **P0** -- Tier 2
-  - Verify backup and restore of a stopped VM with filesystem volume mode DataVolume using Velero DataMover; confirm the restored VM's specification and DataVolume metadata match the original, the VM can be started, and data is intact -- **P0** -- Tier 2
-  - Verify that a Velero backup of a stopped VM fails with a clear, actionable error when OADP/DataMover is unavailable, and that no orphaned backup resources remain in the cluster -- **P0** -- Tier 2
-  - Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly, rather than producing a VM with unbootable or missing storage -- **P0** -- Tier 2
-  - Verify backup and restore of a running VM with WFFC StorageClass DataVolume using Velero DataMover; confirm data integrity after restore -- **P1** -- Tier 2
-  - Verify backup and restore of a stopped VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored VM can be started with correct storage binding -- **P1** -- Tier 2
-  - Verify data written to a VM before backup is readable after restore for both stopped VM and WFFC configurations -- **P1** -- Tier 2
-  - Verify that a restored stopped VM with a WFFC DataVolume starts with storage provisioned in the expected topology zone (bound PV's zone label matches the source zone) -- **P2** -- Tier 2
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a stopped VM with a block volume mode DataVolume via Velero DataMover, so that its specification, DataVolume metadata, and data survive a disaster recovery event
+  - *Test Scenario:* [Tier 2] Verify backup and restore of a stopped VM with block volume mode DataVolume using Velero DataMover; confirm the restored VM's specification and DataVolume metadata match the original, the VM can be started, and data is intact
+  - *Priority:* P0
+
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a stopped VM with a filesystem volume mode DataVolume via Velero DataMover, so that its specification, DataVolume metadata, and data survive a disaster recovery event
+  - *Test Scenario:* [Tier 2] Verify backup and restore of a stopped VM with filesystem volume mode DataVolume using Velero DataMover; confirm the restored VM's specification and DataVolume metadata match the original, the VM can be started, and data is intact
+  - *Priority:* P0
+
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want a Velero backup of a stopped VM to fail with a clear, actionable error when OADP/DataMover is unavailable, so that I'm not left with a silent failure or orphaned backup resources
+  - *Test Scenario:* [Tier 2] Verify that a Velero backup of a stopped VM fails with a clear, actionable error when OADP/DataMover is unavailable, and that no orphaned backup resources remain in the cluster
+  - *Priority:* P0
+
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot to fail clearly, so that I don't end up with a VM that has unbootable or missing storage
+  - *Test Scenario:* [Tier 2] Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly, rather than producing a VM with unbootable or missing storage
+  - *Priority:* P0
+
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a running VM with a WFFC StorageClass DataVolume via Velero DataMover, so that data integrity is preserved for workloads using WaitForFirstConsumer storage binding
+  - *Test Scenario:* [Tier 2] Verify backup and restore of a running VM with WFFC StorageClass DataVolume using Velero DataMover; confirm data integrity after restore
+  - *Priority:* P1
+
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a stopped VM with a WFFC StorageClass DataVolume via Velero DataMover, so that the restored VM starts successfully with correct storage binding
+  - *Test Scenario:* [Tier 2] Verify backup and restore of a stopped VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored VM can be started with correct storage binding
+  - *Priority:* P1
+
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want data written to a VM before backup to be readable after restore, so that I can trust Velero backups for both stopped VM and WFFC configurations
+  - *Test Scenario:* [Tier 2] Verify data written to a VM before backup is readable after restore for both stopped VM and WFFC configurations
+  - *Priority:* P1
+
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want a restored stopped VM with a WFFC DataVolume to start with storage provisioned in the expected topology zone, so that zone-local data locality is preserved after restore
+  - *Test Scenario:* [Tier 2] Verify that a restored stopped VM with a WFFC DataVolume starts with storage provisioned in the expected topology zone (bound PV's zone label matches the source zone)
+  - *Priority:* P2
 
 ---
 
