@@ -320,11 +320,11 @@ The following conditions must be met before testing can begin:
   - _Priority:_ P0
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a running VM with a WFFC StorageClass DataVolume via Velero DataMover, so that data integrity is preserved for workloads using WaitForFirstConsumer storage binding
-  - _Test Scenario:_ [Tier 2] Verify backup and restore of a running VM with WFFC StorageClass DataVolume using Velero DataMover; confirm data integrity after restore
+  - _Test Scenario:_ [Tier 2] Verify backup and restore of a running VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored PVC/PV binds through the configured WaitForFirstConsumer StorageClass and data integrity is preserved after restore
   - _Priority:_ P1
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a stopped VM with a WFFC StorageClass DataVolume via Velero DataMover, so that the restored VM starts successfully with correct storage binding
-  - _Test Scenario:_ [Tier 2] Verify backup and restore of a stopped VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored VM can be started with correct storage binding
+  - _Test Scenario:_ [Tier 2] Verify backup and restore of a stopped VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored PVC/PV binds through the configured WaitForFirstConsumer StorageClass and the restored VM can be started
   - _Priority:_ P1
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want data written to a VM before backup to be readable after restore, so that I can trust Velero backups for both stopped VM and WFFC configurations
