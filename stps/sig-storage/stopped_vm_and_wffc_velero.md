@@ -20,7 +20,7 @@
 
 ### **Feature Overview**
 
-OpenShift Virtualization customers rely on Velero/OADP backup and restore for disaster recovery and workload migration, and expect that protection to work regardless of a VM's power state or storage configuration. Today, stopped (powered-off) VMs and VMs using StorageClasses with WaitForFirstConsumer (WFFC) volume binding mode are not covered by existing Velero test coverage, so a regression in either scenario could go undetected and put customer data at risk during an actual disaster recovery event. This STP covers General Availability (GA) test coverage, targeting CNV v5.0.0, for backup and restore of these two VM configurations.
+OpenShift Virtualization customers rely on Velero/OADP backup and restore for disaster recovery and workload migration, and expect that protection to work whether a VM is running or stopped, and regardless of whether its StorageClass uses Immediate or WaitForFirstConsumer (WFFC) volume binding. Today, stopped (powered-off) VMs and VMs using WFFC StorageClasses are not covered by existing Velero test coverage, so a regression in either scenario could go undetected and put customer data at risk during an actual disaster recovery event. This STP covers General Availability (GA) test coverage, targeting CNV v5.0.0, for backup and restore of stopped VMs (block and filesystem volume modes) and WFFC StorageClass DataVolumes.
 
 ---
 
