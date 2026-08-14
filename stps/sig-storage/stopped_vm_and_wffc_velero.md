@@ -122,8 +122,8 @@ Both categories are tested using the DataMover backup path (Velero with CSI Data
 
 - [P0] Verify that a stopped VM with block volume mode DataVolume can be backed up and restored via Velero DataMover, and the restored VM can be started with data intact
 - [P0] Verify that a stopped VM with filesystem volume mode DataVolume can be backed up and restored via Velero DataMover, and the restored VM can be started with data intact
-- [P0] Verify that a Velero backup of a stopped VM fails with a clear, actionable error when the OADP/DataMover dependency is unavailable, without leaving orphaned backup resources in the cluster
-- [P0] Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly rather than producing a VM with unbootable or missing storage
+- [P0] Verify that a Velero backup of a stopped VM with either block or filesystem volume mode DataVolume fails with a clear, actionable error when the OADP/DataMover dependency is unavailable, without leaving orphaned backup resources in the cluster
+- [P0] Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly rather than producing a VM with unbootable or missing storage, for both block and filesystem volume modes
 - [P1] Verify that a running VM with WFFC StorageClass DataVolume can be backed up and restored via Velero DataMover with correct storage binding
 - [P1] Verify that a stopped VM with WFFC StorageClass DataVolume can be backed up and restored via Velero DataMover
 - [P1] Verify data integrity (file content written before backup is readable after restore) for all new test configurations
@@ -312,11 +312,11 @@ The following conditions must be met before testing can begin:
   - _Priority:_ P0
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want a Velero backup of a stopped VM to fail with a clear, actionable error when OADP/DataMover is unavailable, so that I'm not left with a silent failure or orphaned backup resources
-  - _Test Scenario:_ [Tier 2] Verify that a Velero backup of a stopped VM fails with a clear, actionable error when OADP/DataMover is unavailable, and that no orphaned backup resources remain in the cluster
+  - _Test Scenario:_ [Tier 2] Verify that a Velero backup of a stopped VM, with either block or filesystem volume mode DataVolume, fails with a clear, actionable error when OADP/DataMover is unavailable, and that no orphaned backup resources remain in the cluster
   - _Priority:_ P0
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot to fail clearly, so that I don't end up with a VM that has unbootable or missing storage
-  - _Test Scenario:_ [Tier 2] Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly, rather than producing a VM with unbootable or missing storage
+  - _Test Scenario:_ [Tier 2] Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly, for both block and filesystem volume modes, rather than producing a VM with unbootable or missing storage
   - _Priority:_ P0
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a running VM with a WFFC StorageClass DataVolume via Velero DataMover, so that data integrity is preserved for workloads using WaitForFirstConsumer storage binding
