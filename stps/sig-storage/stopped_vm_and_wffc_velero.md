@@ -75,13 +75,13 @@ technology, and testability before formal test planning.
 #### **2. Known Limitations**
 
 - **Velero backup of stopped VMs with WFFC StorageClass requires the DataMover feature; CSI-only backups without DataMover are not covered by this task**
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+  - _Sign-off:_ [PM name/date]
 
-- **WFFC behavior is StorageClass-dependent; tests will use the default StorageClass that supports snapshot capabilities**
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+- **WFFC behavior is StorageClass-dependent; tests use a separate WFFC-capable StorageClass (`volumeBindingMode: WaitForFirstConsumer`), distinct from the default snapshot-capable StorageClass used for non-WFFC scenarios (see Section II.3, Test Environment)**
+  - _Sign-off:_ [PM name/date]
 
 - **The existing PR (RedHatQE/openshift-virtualization-tests#162) was closed without merge due to OADP testing on main being blocked; the implementation needs to be rebased and updated**
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+  - _Sign-off:_ [PM name/date]
 
 #### **3. Technology and Design Review**
 
