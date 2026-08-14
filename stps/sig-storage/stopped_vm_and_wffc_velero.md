@@ -20,7 +20,7 @@
 
 ### **Feature Overview**
 
-This task extends the existing Velero/OADP backup and restore test coverage to include two previously untested VM configurations: stopped (powered-off) VMs and VMs using StorageClasses with WaitForFirstConsumer (WFFC) volume binding mode. Velero integration is a critical data protection capability for OpenShift Virtualization, and these gaps in test coverage represent areas where customer workloads could fail during backup/restore operations without detection. This is a technical debt item under the CNV Storage Technical Debt Backlog (CNV-12960) targeting CNV v5.0.0.
+OpenShift Virtualization customers rely on Velero/OADP backup and restore for disaster recovery and workload migration, and expect that protection to work regardless of a VM's power state or storage configuration. Today, stopped (powered-off) VMs and VMs using StorageClasses with WaitForFirstConsumer (WFFC) volume binding mode are not covered by existing Velero test coverage, so a regression in either scenario could go undetected and put customer data at risk during an actual disaster recovery event. This STP covers General Availability (GA) test coverage, targeting CNV v5.0.0, for backup and restore of these two VM configurations.
 
 ---
 
@@ -121,29 +121,47 @@ Both categories are tested using the DataMover backup path (Velero with CSI Data
 
 - [P0] Verify that a stopped VM with block volume mode DataVolume can be backed up and restored via Velero DataMover, and the restored VM can be started with data intact
 - [P0] Verify that a stopped VM with filesystem volume mode DataVolume can be backed up and restored via Velero DataMover, and the restored VM can be started with data intact
+- [P0] Verify that a Velero backup of a stopped VM fails with a clear, actionable error when the OADP/DataMover dependency is unavailable, without leaving orphaned backup resources in the cluster
+- [P0] Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly rather than producing a VM with unbootable or missing storage
 - [P1] Verify that a running VM with WFFC StorageClass DataVolume can be backed up and restored via Velero DataMover with correct storage binding
 - [P1] Verify that a stopped VM with WFFC StorageClass DataVolume can be backed up and restored via Velero DataMover
 - [P1] Verify data integrity (file content written before backup is readable after restore) for all new test configurations
 - [P2] Verify that restored stopped VMs with WFFC DataVolumes can be started and the storage is provisioned in the expected topology zone
+
+_Priority note:_ Stopped VM backup/restore is prioritized P0 because it is a previously completely untested VM state for Velero, representing a higher risk of undetected regressions. WFFC StorageClass coverage is prioritized P1 because it extends an existing, well-established backup/restore path (running VMs) with an additional storage-binding dimension, representing incremental rather than foundational risk.
 
 **Out of Scope (Testing Scope Exclusions)**
 
 The following items are explicitly Out of Scope for this test cycle and represent intentional exclusions.
 No verification activities will be performed for these items during this test cycle.
 
-- Windows guest OS backup/restore scenarios -- Existing Windows VM restore coverage already exists in `tests/data_protection/oadp/test_velero.py`; this test debt task targets RHEL guest coverage only and does not extend Windows coverage further
-- CSI-only backup (without DataMover) -- This task targets the DataMover backup path only
-- Velero schedule-based automated backups -- Only on-demand backup/restore is tested
-- Multi-namespace backup/restore with stopped VMs -- Covered by existing multi-namespace tests
-- Backup/restore of VMs with hotplugged volumes -- Separate feature scope
-- Performance benchmarking of backup/restore duration for new scenarios
+- **Windows guest OS backup/restore scenarios**
+  - _Rationale:_ Existing Windows VM restore coverage already exists in `tests/data_protection/oadp/test_velero.py`; this test debt task targets RHEL guest coverage only and does not extend Windows coverage further
+  - _PM/Lead Agreement:_ [Name/Date]
+
+- **CSI-only backup (without DataMover)**
+  - _Rationale:_ This task targets the DataMover backup path only, which is the primary backup mechanism for OpenShift Virtualization
+  - _PM/Lead Agreement:_ [Name/Date]
+
+- **Velero schedule-based automated backups**
+  - _Rationale:_ Only on-demand backup/restore is tested; scheduled backups do not exercise different stopped-VM or WFFC code paths
+  - _PM/Lead Agreement:_ [Name/Date]
+
+- **Multi-namespace backup/restore with stopped VMs**
+  - _Rationale:_ Already covered by existing multi-namespace tests in the OADP regression suite
+  - _PM/Lead Agreement:_ [Name/Date]
+
+- **Backup/restore of VMs with hotplugged volumes**
+  - _Rationale:_ Separate feature scope, unrelated to stopped VM or WFFC coverage
+  - _PM/Lead Agreement:_ [Name/Date]
+
+- **Performance benchmarking of backup/restore duration for new scenarios**
+  - _Rationale:_ Performance testing is not in scope for this test debt task (see Section I.1, NFRs)
+  - _PM/Lead Agreement:_ [Name/Date]
 
 **Test Limitations**
 
 - **OADP operator availability on the test cluster is required; if OADP operator installation or compatibility issues arise (as experienced in previous sprints), tests will be blocked**
-  - _Sign-off:_ Adam Cinko / 2026-08-14
-
-- **WFFC StorageClass may not be available on all test clusters; tests include a skip condition when no WFFC-capable StorageClass is present**
   - _Sign-off:_ Adam Cinko / 2026-08-14
 
 - **Zone-aware storage provisioning is cluster-dependent; WFFC topology binding behavior may not be fully exercised on single-zone clusters**
@@ -204,7 +222,7 @@ No verification activities will be performed for these items during this test cy
 #### **3. Test Environment**
 
 - **Cluster Topology:** Multi-node (minimum 2 worker nodes)
-- **OCP & OpenShift Virtualization Version(s):** OCP 4.22+ / CNV v5.0.0
+- **OCP & OpenShift Virtualization Version(s):** OCP 4.23+ / CNV v5.0.0
 - **CPU Virtualization:** Standard (Intel VT-x / AMD-V)
 - **Compute Resources:** Default (2 worker nodes with sufficient memory for RHEL VMs)
 - **Special Hardware:** None
@@ -237,21 +255,21 @@ The following conditions must be met before testing can begin:
 - **Risk:** OADP testing on main may remain blocked as experienced in previous sprints, preventing test development and validation
   - **Mitigation:** Monitor OADP operator releases and validate compatibility before sprint commitment. Use a staging branch for test development while awaiting OADP fix.
   - _Estimated impact on schedule:_ 1-2 sprints delay if OADP remains blocked
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+  - _Sign-off:_ [Name/Date]
 
 **Test Coverage**
 
 - **Risk:** WFFC StorageClass behavior may vary between storage providers, reducing coverage confidence on non-default storage backends
   - **Mitigation:** Document tested StorageClass configurations. Use skip markers for clusters without WFFC-capable StorageClasses. Consider adding parameterization for multiple StorageClasses in a follow-up task.
   - _Areas with reduced coverage:_ WFFC with non-default storage providers
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+  - _Sign-off:_ [Name/Date]
 
 **Test Environment**
 
-- **Risk:** Test clusters may not have a StorageClass configured with WaitForFirstConsumer binding mode
-  - **Mitigation:** Add a pytest skip condition (`skip_if_no_wffc_storage_class`) to gracefully skip WFFC tests when the required StorageClass is not available. Document required StorageClass configuration in test prerequisites.
-  - _Missing resources or infrastructure:_ WFFC-capable StorageClass on CI clusters
-  - _Sign-off:_ QE Lead
+- **Risk:** None -- test clusters always have a StorageClass configured with WaitForFirstConsumer binding mode available, so WFFC test coverage does not depend on optional infrastructure.
+  - **Mitigation:** N/A
+  - _Missing resources or infrastructure:_ N/A
+  - _Sign-off:_ N/A
 
 **Untestable Aspects**
 
@@ -265,14 +283,14 @@ The following conditions must be met before testing can begin:
 - **Risk:** A prior implementation attempt for this same test coverage (RedHatQE/openshift-virtualization-tests#162) was closed without merge when OADP testing on main became blocked (see Section I.2, Known Limitations); rebasing and updating that work requires additional rework effort
   - **Mitigation:** Reuse PR #162's code as a starting reference for the new implementation rather than starting from scratch. Its diff was small (~35 additions) and was already reviewed at the time, reducing the risk and effort of the rebase.
   - _Current capacity gaps:_ None identified
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+  - _Sign-off:_ [Name/Date]
 
 **Dependencies**
 
 - **Risk:** OADP operator version compatibility with the target CNV/OCP version may introduce API changes or behavioral differences
   - **Mitigation:** Pin OADP operator version in test prerequisites. Validate operator compatibility during environment setup phase.
   - _Dependent teams or components:_ OADP/Velero team (Red Hat)
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+  - _Sign-off:_ [Name/Date]
 
 **Other**
 
@@ -287,6 +305,8 @@ The following conditions must be met before testing can begin:
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want stopped VMs and WFFC StorageClass DataVolumes covered by Velero backup/restore, so that these previously untested VM configurations are protected during disaster recovery
   - Verify backup and restore of a stopped VM with block volume mode DataVolume using Velero DataMover; confirm the restored VM can be started and data is intact -- **P0** -- Tier 2
   - Verify backup and restore of a stopped VM with filesystem volume mode DataVolume using Velero DataMover; confirm the restored VM can be started and data is intact -- **P0** -- Tier 2
+  - Verify that a Velero backup of a stopped VM fails with a clear, actionable error when OADP/DataMover is unavailable, and that no orphaned backup resources remain in the cluster -- **P0** -- Tier 2
+  - Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly, rather than producing a VM with unbootable or missing storage -- **P0** -- Tier 2
   - Verify backup and restore of a running VM with WFFC StorageClass DataVolume using Velero DataMover; confirm data integrity after restore -- **P1** -- Tier 2
   - Verify backup and restore of a stopped VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored VM can be started with correct storage binding -- **P1** -- Tier 2
   - Verify data written to a VM before backup is readable after restore for both stopped VM and WFFC configurations -- **P1** -- Tier 2
