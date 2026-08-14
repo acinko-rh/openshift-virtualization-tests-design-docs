@@ -342,8 +342,9 @@ The following conditions must be met before testing can begin:
 This Software Test Plan requires approval from the following stakeholders:
 
 - **Reviewers:**
-  - [Reviewer / @github-username]
-  - [Reviewer / @github-username]
-- **Approvers:**
-  - [Approver / @github-username]
-  - [Approver / @github-username]
+  - QE Architect (OCP-V): Ruth Netser (`@rnetser`)
+  - QE Members (OCP-V): Jenia Peimer (`@jpeimer`), Emanuele Prella (`@ema-aka-young`), Jose Manuel Castano (`@joscasta`)
+
+* **Approvers:**
+  - QE Architect (OCP-V): Ruth Netser (`@rnetser`)
+  - PM: Peter Lauterbach (`@pelauter`)
