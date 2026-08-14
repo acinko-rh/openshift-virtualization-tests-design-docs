@@ -1,4 +1,4 @@
-# Openshift-virtualization-tests Test plan
+# OpenShift-virtualization-tests Test plan
 
 ## **Velero Backup/Restore: Stopped VM and WFFC Support - Quality Engineering Plan**
 
