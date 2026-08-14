@@ -42,9 +42,9 @@ technology, and testability before formal test planning.
   - _Describe the feature's value to customers:_ Customers using OADP/Velero for disaster recovery and migration need confidence that all VM states are protected. Stopped VMs represent valid production workloads (e.g., template VMs, scheduled-off VMs, maintenance windows), and WFFC is the recommended StorageClass binding mode for multi-zone clusters. Without test coverage, regressions in these scenarios could cause data loss during DR operations.
   - _List the customer use cases identified:_
     - As a cluster admin, I want to back up and restore template VMs that remain in a stopped state, so that my VM templates survive a disaster recovery event
-    - As a cluster admin, I want to recover VMs that were powered off during a scheduled maintenance window, so that maintenance activity doesn't put those workloads at risk
+    - As a cluster admin, I need to recover VMs that were powered off during a scheduled maintenance window, so that maintenance activity doesn't put those workloads at risk
     - As a cluster admin, I want to migrate workloads using WFFC StorageClasses between clusters or namespaces, so that storage topology is preserved after migration
-    - As a cluster admin, I want backups of VMs in multi-zone clusters to preserve storage locality, so that restored VMs bind to the correct topology zone
+    - As a cluster admin, I expect backups of VMs in multi-zone clusters to preserve storage locality, so that restored VMs bind to the correct topology zone
 
 - [x] **Testability**
   - _Note any requirements that are unclear or untestable:_ All requirements are testable through the existing OADP/Velero test framework. The existing `data_protection/oadp/` infrastructure supports parameterized VM configurations and DataVolume modes.
@@ -73,9 +73,14 @@ technology, and testability before formal test planning.
 
 #### **2. Known Limitations**
 
-- Velero backup of stopped VMs with WFFC StorageClass requires the DataMover feature; CSI-only backups without DataMover are not covered by this task
-- WFFC behavior is StorageClass-dependent; tests will use the default StorageClass that supports snapshot capabilities
-- The existing PR (RedHatQE/openshift-virtualization-tests#162) was closed without merge due to OADP testing on main being blocked; the implementation needs to be rebased and updated
+- **Velero backup of stopped VMs with WFFC StorageClass requires the DataMover feature; CSI-only backups without DataMover are not covered by this task**
+  - _Sign-off:_ Adam Cinko / 2026-08-14
+
+- **WFFC behavior is StorageClass-dependent; tests will use the default StorageClass that supports snapshot capabilities**
+  - _Sign-off:_ Adam Cinko / 2026-08-14
+
+- **The existing PR (RedHatQE/openshift-virtualization-tests#162) was closed without merge due to OADP testing on main being blocked; the implementation needs to be rebased and updated**
+  - _Sign-off:_ Adam Cinko / 2026-08-14
 
 #### **3. Technology and Design Review**
 
@@ -135,9 +140,14 @@ No verification activities will be performed for these items during this test cy
 
 **Test Limitations**
 
-- OADP operator availability on the test cluster is required; if OADP operator installation or compatibility issues arise (as experienced in previous sprints), tests will be blocked
-- WFFC StorageClass may not be available on all test clusters; tests include a skip condition when no WFFC-capable StorageClass is present
-- Zone-aware storage provisioning is cluster-dependent; WFFC topology binding behavior may not be fully exercised on single-zone clusters
+- **OADP operator availability on the test cluster is required; if OADP operator installation or compatibility issues arise (as experienced in previous sprints), tests will be blocked**
+  - _Sign-off:_ Adam Cinko / 2026-08-14
+
+- **WFFC StorageClass may not be available on all test clusters; tests include a skip condition when no WFFC-capable StorageClass is present**
+  - _Sign-off:_ Adam Cinko / 2026-08-14
+
+- **Zone-aware storage provisioning is cluster-dependent; WFFC topology binding behavior may not be fully exercised on single-zone clusters**
+  - _Sign-off:_ Adam Cinko / 2026-08-14
 
 #### **2. Test Strategy**
 
@@ -227,14 +237,14 @@ The following conditions must be met before testing can begin:
 - **Risk:** OADP testing on main may remain blocked as experienced in previous sprints, preventing test development and validation
   - **Mitigation:** Monitor OADP operator releases and validate compatibility before sprint commitment. Use a staging branch for test development while awaiting OADP fix.
   - _Estimated impact on schedule:_ 1-2 sprints delay if OADP remains blocked
-  - _Sign-off:_ QE Lead
+  - _Sign-off:_ Adam Cinko / 2026-08-14
 
 **Test Coverage**
 
 - **Risk:** WFFC StorageClass behavior may vary between storage providers, reducing coverage confidence on non-default storage backends
   - **Mitigation:** Document tested StorageClass configurations. Use skip markers for clusters without WFFC-capable StorageClasses. Consider adding parameterization for multiple StorageClasses in a follow-up task.
   - _Areas with reduced coverage:_ WFFC with non-default storage providers
-  - _Sign-off:_ QE Lead
+  - _Sign-off:_ Adam Cinko / 2026-08-14
 
 **Test Environment**
 
@@ -245,28 +255,28 @@ The following conditions must be met before testing can begin:
 
 **Untestable Aspects**
 
-- **Risk:** N/A -- All identified scenarios are testable with existing infrastructure.
-  - **Mitigation:** N/A
+- **Risk:** None -- all identified scenarios (stopped VM backup/restore, WFFC binding, topology zone verification) are reproducible with existing cluster infrastructure and require no production-only conditions.
+  - **Mitigation:** N/A -- no untestable aspects identified
   - _Alternative validation approach:_ N/A
   - _Sign-off:_ N/A
 
 **Resource Constraints**
 
-- **Risk:** The existing PR (RedHatQE/openshift-virtualization-tests#162) was closed without merge and needs to be rebased and updated, requiring additional rework effort
-  - **Mitigation:** Reuse the PR code as a reference for the new implementation. The code changes are minimal (35 additions) and well-understood from code review feedback.
+- **Risk:** A prior implementation attempt for this same test coverage (RedHatQE/openshift-virtualization-tests#162) was closed without merge when OADP testing on main became blocked (see Section I.2, Known Limitations); rebasing and updating that work requires additional rework effort
+  - **Mitigation:** Reuse PR #162's code as a starting reference for the new implementation rather than starting from scratch. Its diff was small (~35 additions) and was already reviewed at the time, reducing the risk and effort of the rebase.
   - _Current capacity gaps:_ None identified
-  - _Sign-off:_ QE Lead
+  - _Sign-off:_ Adam Cinko / 2026-08-14
 
 **Dependencies**
 
 - **Risk:** OADP operator version compatibility with the target CNV/OCP version may introduce API changes or behavioral differences
   - **Mitigation:** Pin OADP operator version in test prerequisites. Validate operator compatibility during environment setup phase.
   - _Dependent teams or components:_ OADP/Velero team (Red Hat)
-  - _Sign-off:_ QE Lead
+  - _Sign-off:_ Adam Cinko / 2026-08-14
 
 **Other**
 
-- **Risk:** N/A
+- **Risk:** None -- no additional risks identified outside the categories above.
   - **Mitigation:** N/A
   - _Sign-off:_ N/A
 
