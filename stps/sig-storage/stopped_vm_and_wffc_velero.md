@@ -54,6 +54,7 @@ technology, and testability before formal test planning.
     - Stopped VM can be backed up via Velero with DataMover without errors
     - Stopped VM can be restored from Velero backup and started successfully
     - Data written to a stopped VM before backup is present after restore and VM start
+    - Restored stopped VM's specification (e.g., CPU/memory resources, network interfaces) and DataVolume metadata (size, StorageClass) match the original VM prior to backup
     - VM with WFFC StorageClass DataVolume can be backed up via Velero
     - VM with WFFC StorageClass DataVolume can be restored and started with correct storage binding
     - All new tests are integrated into the existing `test_velero.py` parameterized test structure
@@ -162,10 +163,10 @@ No verification activities will be performed for these items during this test cy
 **Test Limitations**
 
 - **OADP operator availability on the test cluster is required; if OADP operator installation or compatibility issues arise (as experienced in previous sprints), tests will be blocked**
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+  - _Sign-off:_ [PM name/date]
 
 - **Zone-aware storage provisioning is cluster-dependent; WFFC topology binding behavior may not be fully exercised on single-zone clusters**
-  - _Sign-off:_ Adam Cinko / 2026-08-14
+  - _Sign-off:_ [PM name/date]
 
 #### **2. Test Strategy**
 
@@ -303,8 +304,8 @@ The following conditions must be met before testing can begin:
 ### **III. Test Scenarios & Traceability**
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want stopped VMs and WFFC StorageClass DataVolumes covered by Velero backup/restore, so that these previously untested VM configurations are protected during disaster recovery
-  - Verify backup and restore of a stopped VM with block volume mode DataVolume using Velero DataMover; confirm the restored VM can be started and data is intact -- **P0** -- Tier 2
-  - Verify backup and restore of a stopped VM with filesystem volume mode DataVolume using Velero DataMover; confirm the restored VM can be started and data is intact -- **P0** -- Tier 2
+  - Verify backup and restore of a stopped VM with block volume mode DataVolume using Velero DataMover; confirm the restored VM's specification and DataVolume metadata match the original, the VM can be started, and data is intact -- **P0** -- Tier 2
+  - Verify backup and restore of a stopped VM with filesystem volume mode DataVolume using Velero DataMover; confirm the restored VM's specification and DataVolume metadata match the original, the VM can be started, and data is intact -- **P0** -- Tier 2
   - Verify that a Velero backup of a stopped VM fails with a clear, actionable error when OADP/DataMover is unavailable, and that no orphaned backup resources remain in the cluster -- **P0** -- Tier 2
   - Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly, rather than producing a VM with unbootable or missing storage -- **P0** -- Tier 2
   - Verify backup and restore of a running VM with WFFC StorageClass DataVolume using Velero DataMover; confirm data integrity after restore -- **P1** -- Tier 2
