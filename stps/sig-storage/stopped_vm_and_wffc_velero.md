@@ -227,7 +227,7 @@ No verification activities will be performed for these items during this test cy
 - **CPU Virtualization:** Standard (Intel VT-x / AMD-V)
 - **Compute Resources:** Default (2 worker nodes with sufficient memory for RHEL VMs)
 - **Special Hardware:** None
-- **Storage:** StorageClass with snapshot support (default: ocs-storagecluster-ceph-rbd); additional StorageClass with `volumeBindingMode: WaitForFirstConsumer` for WFFC tests
+- **Storage:** StorageClass with snapshot support (`ocs-storagecluster-ceph-rbd` on ODF-based clusters; an equivalent snapshot-capable StorageClass on other platforms); additional StorageClass with `volumeBindingMode: WaitForFirstConsumer` for WFFC tests. Exact names, provisioners, and worker/zone topology to be pinned by the QE owner in coordination with the Storage Ecosystem team (see Section I.1, Acceptance Criteria gaps).
 - **Network:** Standard cluster networking (OVN-Kubernetes)
 - **Required Operators:** OpenShift Virtualization Operator, OADP Operator (with Velero and DataMover components)
 - **Platform:** Any supported OCP platform (bare-metal, AWS, Azure, GCP)
