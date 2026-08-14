@@ -92,7 +92,7 @@ technology, and testability before formal test planning.
   - _List identified challenges:_
     - OADP operator compatibility with the test environment version must be verified; previous sprint comments indicate OADP testing on main was blocked
     - WFFC StorageClass testing requires a cluster with zone-aware storage provisioner or at minimum a StorageClass configured with `volumeBindingMode: WaitForFirstConsumer`
-  - _Impact on testing approach:_ Tests must validate StorageClass binding mode before executing WFFC scenarios; skip if no suitable StorageClass is available
+  - _Impact on testing approach:_ Tests validate StorageClass binding mode before executing WFFC scenarios as a sanity check. A WFFC-capable StorageClass is guaranteed present on test clusters (see Section II.5, Risks -- Test Environment), so this is not a skip condition.
 
 - [x] **API Extensions**
   - _List new or modified APIs:_ None. This task uses existing Velero/OADP APIs and KubeVirt VM APIs.
@@ -261,7 +261,7 @@ The following conditions must be met before testing can begin:
 **Test Coverage**
 
 - **Risk:** WFFC StorageClass behavior may vary between storage providers, reducing coverage confidence on non-default storage backends
-  - **Mitigation:** Document tested StorageClass configurations. Use skip markers for clusters without WFFC-capable StorageClasses. Consider adding parameterization for multiple StorageClasses in a follow-up task.
+  - **Mitigation:** Document tested StorageClass configurations. Consider adding parameterization for multiple WFFC-capable StorageClasses in a follow-up task to widen provider coverage.
   - _Areas with reduced coverage:_ WFFC with non-default storage providers
   - _Sign-off:_ [Name/Date]
 
