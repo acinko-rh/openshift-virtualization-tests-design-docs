@@ -119,7 +119,7 @@ Both categories are tested using the DataMover backup path (Velero with CSI Data
 - [P0] Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails clearly rather than producing a VM with unbootable or missing storage, for both block and filesystem volume modes
 - [P1] Verify that a running VM with WFFC StorageClass DataVolume can be backed up and restored via Velero DataMover with correct storage binding
 - [P1] Verify that a stopped VM with WFFC StorageClass DataVolume can be backed up and restored via Velero DataMover
-- [P1] Verify data integrity (file content written before backup is readable after restore) for all new test configurations
+- [P1] Verify data integrity (file content written before backup is readable after restore) for all four new test configurations: stopped VM with block volume mode, stopped VM with filesystem volume mode, running VM with WFFC StorageClass, and stopped VM with WFFC StorageClass
 - [P2] Verify that restored stopped VMs with WFFC DataVolumes can be started and the storage is provisioned in the expected topology zone
 
 _Priority note:_ Stopped VM backup/restore is prioritized P0 because it is a previously completely untested VM state for Velero, representing a higher risk of undetected regressions. WFFC StorageClass coverage is prioritized P1 because it extends an existing, well-established backup/restore path (running VMs) with an additional storage-binding dimension, representing incremental rather than foundational risk.
@@ -240,7 +240,7 @@ The following conditions must be met before testing can begin:
 
 - [ ] Requirements and design documents are **approved and merged**
 - [ ] Test environment can be **set up and configured** (see Section II.3 - Test Environment)
-- [x] OADP operator is installable and functional on the target cluster version
+- [x] OADP operator installs successfully via OLM on the target OCP/CNV version, and a sample VM backup and restore completes successfully as a smoke check
 - [x] At least one StorageClass with snapshot support is available
 - [x] For WFFC tests: a StorageClass with `volumeBindingMode: WaitForFirstConsumer` is available
 
