@@ -57,7 +57,6 @@ technology, and testability before formal test planning.
     - Restored stopped VM's specification (e.g., CPU/memory resources, network interfaces) and DataVolume metadata (size, StorageClass) match the original VM prior to backup
     - VM with WFFC StorageClass DataVolume can be backed up via Velero
     - VM with WFFC StorageClass DataVolume can be restored and started with correct storage binding
-    - All new tests are integrated into the existing `test_velero.py` parameterized test structure
   - _Note any gaps or missing criteria:_ The Jira description is minimal ("Add stopped VM and WFFC to velero tests plan and automate the tests"). Specific WFFC StorageClass names and zone topology requirements should be confirmed with the Storage Ecosystem team.
 
 - [x] **Non-Functional Requirements (NFRs)**
@@ -66,7 +65,7 @@ technology, and testability before formal test planning.
     - Tests must be idempotent and not leave orphaned resources in the cluster
   - _Note any NFRs not covered and why:_
     - Performance: Not covered — benchmarking of backup/restore duration is out of scope for this test debt task (see Section II.1, Out of Scope)
-    - Scalability: Not covered — scale testing with multiple stopped VMs is out of scope for this test debt task (see Section II.1, Out of Scope)
+    - Scalability: This feature introduces no new scale requirements; it relies on the existing OADP/Velero backup mechanism, which already has its own concurrency and throughput limits for bulk/multi-VM backups. Testing against those existing platform-level constraints is out of scope for this test debt task (see Section II.1, Out of Scope)
     - Security: No new security surface introduced; covered by existing RBAC context (see Section II.2, Security Testing)
     - Monitoring/Observability: No new metrics or alerts introduced by this test debt task (see Section II.2, Monitoring)
     - UI: N/A — feature has no UI surface; no customer-facing UI testing value identified
@@ -74,13 +73,7 @@ technology, and testability before formal test planning.
 
 #### **2. Known Limitations**
 
-- **Velero backup of stopped VMs with WFFC StorageClass requires the DataMover feature; CSI-only backups without DataMover are not covered by this task**
-  - _Sign-off:_ [PM name/date]
-
-- **WFFC behavior is StorageClass-dependent; tests use a separate WFFC-capable StorageClass (`volumeBindingMode: WaitForFirstConsumer`), distinct from the default snapshot-capable StorageClass used for non-WFFC scenarios (see Section II.3, Test Environment)**
-  - _Sign-off:_ [PM name/date]
-
-- **The existing PR (RedHatQE/openshift-virtualization-tests#162) was closed without merge due to OADP testing on main being blocked; the implementation needs to be rebased and updated**
+- **Velero backup of stopped VMs with WFFC StorageClass requires the DataMover feature**
   - _Sign-off:_ [PM name/date]
 
 #### **3. Technology and Design Review**
@@ -96,7 +89,7 @@ technology, and testability before formal test planning.
 
 - [x] **API Extensions**
   - _List new or modified APIs:_ None. This task uses existing Velero/OADP APIs and KubeVirt VM APIs.
-  - _Testing impact:_ No API changes; existing test utilities (`create_rhel_vm`, `running_vm`, `check_file_in_vm`) are reused.
+  - _Testing impact:_ No API changes; existing test automation is reused.
 
 - [x] **Test Environment Needs**
   - _See environment requirements in Section II.3 and testing tools in Section II.3.1_
@@ -148,8 +141,8 @@ No verification activities will be performed for these items during this test cy
   - _Rationale:_ Only on-demand backup/restore is tested; scheduled backups do not exercise different stopped-VM or WFFC code paths
   - _PM/Lead Agreement:_ [Name/Date]
 
-- **Multi-namespace backup/restore with stopped VMs**
-  - _Rationale:_ Already covered by existing multi-namespace tests in the OADP regression suite
+- **Multi-namespace backup/restore with stopped VMs or WFFC StorageClass DataVolumes**
+  - _Rationale:_ The existing multi-namespace backup/restore test (`test_restore_multiple_namespaces`) only exercises a running VM with no WFFC StorageClass; it does not cover stopped VMs or WFFC. This combination is genuinely untested, not covered elsewhere, and is deferred from this test debt task's scope to keep the initial pass focused on single-namespace stopped-VM and WFFC coverage.
   - _PM/Lead Agreement:_ [Name/Date]
 
 - **Backup/restore of VMs with hotplugged volumes**
