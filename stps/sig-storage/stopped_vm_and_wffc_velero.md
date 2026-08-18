@@ -95,8 +95,8 @@ technology, and testability before formal test planning.
   - _See environment requirements in Section II.3 and testing tools in Section II.3.1_
 
 - [x] **Topology Considerations**
-  - _Describe topology requirements:_ Multi-node cluster required for WFFC testing to validate storage topology-aware provisioning. Single-node clusters may not exercise the WFFC binding delay behavior.
-  - _Impact on test design:_ WFFC tests should include a skip condition for clusters without multi-zone or multi-node topology awareness.
+  - _Describe topology requirements:_ Multi-node, multi-zone cluster required for WFFC testing to validate storage topology-aware provisioning.
+  - _Impact on test design:_ Test clusters are guaranteed multi-zone (see Section II.3, Test Environment), so no topology-based skip condition is needed for WFFC scenarios.
 
 ### **II. Software Test Plan (STP)**
 
@@ -123,6 +123,8 @@ Both categories are tested using the DataMover backup path (Velero with CSI Data
 - [P2] Verify that restored stopped VMs with WFFC DataVolumes can be started and the storage is provisioned in the expected topology zone
 
 _Priority note:_ Stopped VM backup/restore is prioritized P0 because it is a previously completely untested VM state for Velero, representing a higher risk of undetected regressions. WFFC StorageClass coverage is prioritized P1 because it extends an existing, well-established backup/restore path (running VMs) with an additional storage-binding dimension, representing incremental rather than foundational risk.
+
+_Implementation note:_ The two failure-path P0 goals (OADP/DataMover unavailable, missing or corrupted DataVolume snapshot) state intent at the STP level. The concrete failure-injection mechanism (e.g., how OADP unavailability or snapshot corruption is simulated) is a test-implementation detail to be designed in the STD before automation.
 
 **Out of Scope (Testing Scope Exclusions)**
 
@@ -215,7 +217,7 @@ No verification activities will be performed for these items during this test cy
 
 #### **3. Test Environment**
 
-- **Cluster Topology:** Multi-node (minimum 2 worker nodes)
+- **Cluster Topology:** Multi-node, multi-zone (minimum 2 worker nodes across at least 2 zones)
 - **OCP & OpenShift Virtualization Version(s):** OCP 4.23+ / CNV v5.0.0
 - **CPU Virtualization:** Standard (Intel VT-x / AMD-V)
 - **Compute Resources:** Default (2 worker nodes with sufficient memory for RHEL VMs)
