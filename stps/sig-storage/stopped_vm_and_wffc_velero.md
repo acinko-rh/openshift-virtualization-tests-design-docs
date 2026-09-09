@@ -36,15 +36,15 @@ technology, and testability before formal test planning.
     - Velero backup must successfully capture a stopped VM (VM in powered-off state) including its DataVolume and VM specification
     - Velero restore must successfully recreate a stopped VM that can be subsequently started and retain its data
     - Velero backup must handle DataVolumes provisioned with WaitForFirstConsumer (WFFC) StorageClasses where the PV binding is deferred until pod scheduling
-    - Velero restore must correctly recreate WFFC-bound DataVolumes and ensure the VM can start with storage provisioned in the correct topology zone
+    - Velero restore must correctly recreate WFFC-bound DataVolumes and ensure the VM can start with its storage bound in a zone consistent with the node where the VM is scheduled
 
 - [x] **Understand Value and Customer Use Cases**
   - _Describe the feature's value to customers:_ Customers using OADP/Velero for disaster recovery and migration need confidence that all VM states are protected. Stopped VMs represent valid production workloads (e.g., template VMs, scheduled-off VMs, maintenance windows), and WFFC is the recommended StorageClass binding mode for multi-zone clusters. Without test coverage, regressions in these scenarios could cause data loss during DR operations.
   - _List the customer use cases identified:_
     - As a cluster admin, I want to back up and restore template VMs that remain in a stopped state, so that my VM templates survive a disaster recovery event
     - As a cluster admin, I need to recover VMs that were powered off during a scheduled maintenance window, so that maintenance activity doesn't put those workloads at risk
-    - As a cluster admin, I want to migrate workloads using WFFC StorageClasses between clusters or namespaces, so that storage topology is preserved after migration
-    - As a cluster admin, I expect backups of VMs in multi-zone clusters to preserve storage locality, so that restored VMs bind to the correct topology zone
+    - As a cluster admin, I want to back up and restore VMs using WFFC StorageClasses within the same cluster and namespace, so that WaitForFirstConsumer workloads are protected by the same disaster-recovery flow as other VMs
+    - As a cluster admin, I expect a restored VM in a multi-zone cluster to come up with its storage co-located in the zone where it is scheduled, so that zone-local data access is preserved after restore
 
 - [x] **Testability**
   - _Note any requirements that are unclear or untestable:_ All requirements are testable through the existing OADP/Velero test framework. The existing `data_protection/oadp/` infrastructure supports parameterized VM configurations and DataVolume modes.
@@ -52,8 +52,8 @@ technology, and testability before formal test planning.
 - [x] **Acceptance Criteria**
   - _List the acceptance criteria:_
     - Stopped VM can be backed up via Velero with DataMover without errors
-    - Stopped VM can be restored from Velero backup and started successfully
-    - Data written to a stopped VM before backup is present after restore and VM start
+    - Stopped VM is restored in the powered-off state (not auto-started), and can then be explicitly started successfully
+    - Data written while the VM is running, before it is stopped and backed up, is present after restore and VM start
     - Restored stopped VM preserves, unchanged from before backup, its resource configuration (CPU/memory, network interfaces) and its DataVolume storage attributes (size, StorageClass, volume mode); Velero-injected changes -- new resource identifiers (UID/resourceVersion), restore-tool labels/annotations, and object status -- are expected and are excluded from the comparison
     - VM with WFFC StorageClass DataVolume can be backed up via Velero
     - VM with WFFC StorageClass DataVolume can be restored and started with correct storage binding
@@ -61,7 +61,7 @@ technology, and testability before formal test planning.
 
 - [x] **Non-Functional Requirements (NFRs)**
   - _List applicable NFRs and their targets:_
-    - Backup/restore operations must complete within the existing test timeout thresholds (8-10 minutes per operation)
+    - Backup and restore of a single VM complete without indefinite hangs or timeouts; concrete duration thresholds are a test-implementation detail deferred to the STD (performance benchmarking itself is out of scope -- see the Performance note below)
     - Tests must be idempotent and not leave orphaned resources in the cluster
   - _Note any NFRs not covered and why:_
     - Performance: Not covered — benchmarking of backup/restore duration is out of scope for this test debt task (see Section II.1, Out of Scope)
@@ -115,16 +115,16 @@ Both categories are tested using the DataMover backup path (Velero with CSI Data
 
 - [P0] Verify that a stopped VM with block volume mode DataVolume can be backed up and restored via Velero DataMover, and the restored VM can be started with data intact
 - [P0] Verify that a stopped VM with filesystem volume mode DataVolume can be backed up and restored via Velero DataMover, and the restored VM can be started with data intact
-- [P0] Verify that a Velero backup of a stopped VM with either block or filesystem volume mode DataVolume fails observably when the OADP/DataMover dependency is unavailable: the Backup ends in a non-successful phase (PartiallyFailed or Failed) carrying a failure condition/message that identifies the unavailable dependency, and a post-run check confirms no orphaned backup resources (Backup, VolumeSnapshot/VolumeSnapshotContent, or DataUpload objects) remain in the cluster
+- [P0] Verify that a Velero backup of a stopped VM with either block or filesystem volume mode DataVolume fails observably when the OADP/DataMover dependency is unavailable: the Backup ends in a non-successful phase (PartiallyFailed or Failed) carrying a failure condition/message that identifies the unavailable dependency, and the failed backup leaves no leftover backup artifacts behind (which specific artifacts to check is deferred to the STD)
 - [P0] Verify that restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot fails observably -- the Restore ends in a non-successful phase (PartiallyFailed or Failed) carrying a failure condition that references the missing or invalid snapshot data -- rather than producing a started VM with unbootable or missing storage, for both block and filesystem volume modes
 - [P1] Verify that a running VM with WFFC StorageClass DataVolume can be backed up and restored via Velero DataMover with correct storage binding
 - [P1] Verify that a stopped VM with WFFC StorageClass DataVolume can be backed up and restored via Velero DataMover
 - [P1] Verify data integrity (file content written before backup is readable after restore) for all four new test configurations: stopped VM with block volume mode, stopped VM with filesystem volume mode, running VM with WFFC StorageClass, and stopped VM with WFFC StorageClass
-- [P2] Verify that restored stopped VMs with WFFC DataVolumes can be started and the storage is provisioned in the expected topology zone
+- [P2] Verify that restored stopped VMs with WFFC DataVolumes can be started and their storage binds in a zone consistent with the scheduled node (zone-local access), rather than requiring the original source zone
 
 _Priority note:_ Stopped VM backup/restore is prioritized P0 because it is a previously completely untested VM state for Velero, representing a higher risk of undetected regressions. WFFC StorageClass coverage is prioritized P1 because it extends an existing, well-established backup/restore path (running VMs) with an additional storage-binding dimension, representing incremental rather than foundational risk.
 
-_Implementation note:_ The two failure-path P0 goals above define the observable pass/fail (Backup/Restore phase, surfaced failure condition, and post-run resource check). The concrete failure-injection mechanism -- how OADP/DataMover unavailability or a missing/corrupted snapshot is simulated non-destructively in a shared CI suite -- is a test-implementation detail to be designed in the STD before automation.
+_Implementation note:_ The two failure-path P0 goals above define the observable pass/fail (Backup/Restore phase, surfaced failure condition, and a post-run check for leftover artifacts). The concrete failure-injection mechanism -- how OADP/DataMover unavailability or a missing/corrupted snapshot is simulated non-destructively in a shared CI suite -- is a test-implementation detail to be designed in the STD before automation.
 
 _WFFC binding note:_ For the stopped-VM WFFC scenario, the source DataVolume is already Bound at backup time -- CDI's import populator provisions the PVC when the DataVolume is imported, independent of the StorageClass's `WaitForFirstConsumer` mode -- so the backup step does not exercise deferred binding. The WFFC deferred-binding path is exercised on restore-and-start, when the restored PVC stays Pending until the VM's virt-launcher pod is scheduled and then binds in the scheduled zone. Binding for an actively-consumed volume is additionally covered by the running-VM WFFC scenario (P1).
 
@@ -170,10 +170,13 @@ No verification activities will be performed for these items during this test cy
 **Functional**
 
 - [x] **Functional Testing** -- Validates that the feature works according to specified requirements and user stories
-  - _Details:_ All test scenarios validate end-to-end backup and restore workflows. Each scenario creates a VM, writes test data, performs Velero backup, deletes the original resources, restores from backup, and verifies data integrity and VM operability.
+  - _Details:_ The scenarios follow three distinct workflow shapes:
+    - _Positive backup/restore (the five functional scenarios):_ create a VM, write test data while it is running, stop it if the scenario uses a stopped source, perform a Velero backup, delete the original resources, restore from backup, then confirm the restored VM's power state, start it, and verify data integrity and operability.
+    - _Failure-path (the two P0 negative scenarios):_ drive the backup or restore into the injected failure condition and assert it fails observably (a non-successful phase plus a surfaced failure condition) leaving no leftover artifacts; there is no delete-restore-verify step.
+    - _Topology (the P2 scenario):_ restore and start the stopped WFFC VM and assert its storage binds in a zone consistent with the node where the VM is scheduled.
 
 - [x] **Automation Testing** -- Confirms test automation plan is in place for CI and regression coverage (all tests are expected to be automated)
-  - _Details:_ All tests are automated in Python/pytest within the `tests/data_protection/oadp/` directory of the openshift-virtualization-tests repository. Tests use the existing parameterized framework and Polarion markers for traceability. Target: all scenarios automated and integrated into nightly CI before CNV v5.0.0 code freeze.
+  - _Details:_ All tests are automated in Python/pytest within the `tests/data_protection/oadp/` directory of the openshift-virtualization-tests repository. Tests use the existing parameterized framework and Polarion markers for traceability, and run in the existing nightly CI lane.
 
 - [x] **Regression Testing** -- Verifies that new changes do not break existing functionality
   - _Details:_ Existing Velero backup/restore tests must continue to pass. The new `stopped_vm` fixture and parameterization must not alter the behavior of existing test cases that use `stopped_vm=False`.
@@ -301,15 +304,15 @@ The following conditions must be met before testing can begin:
 ### **III. Test Scenarios & Traceability**
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a stopped VM with a block volume mode DataVolume via Velero DataMover, so that its specification, DataVolume metadata, and data survive a disaster recovery event
-  - _Test Scenario:_ [Tier 2] Verify backup and restore of a stopped VM with block volume mode DataVolume using Velero DataMover; confirm the restored VM's resource configuration and DataVolume storage attributes (size, StorageClass, volume mode) match the original, the VM can be started, and data is intact
+  - _Test Scenario:_ [Tier 2] Verify backup and restore of a stopped VM with block volume mode DataVolume using Velero DataMover; confirm the restored VM's resource configuration and DataVolume storage attributes (size, StorageClass, volume mode) match the original, the VM is restored powered off (not auto-started) and can then be started, and data is intact
   - _Priority:_ P0
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a stopped VM with a filesystem volume mode DataVolume via Velero DataMover, so that its specification, DataVolume metadata, and data survive a disaster recovery event
-  - _Test Scenario:_ [Tier 2] Verify backup and restore of a stopped VM with filesystem volume mode DataVolume using Velero DataMover; confirm the restored VM's resource configuration and DataVolume storage attributes (size, StorageClass, volume mode) match the original, the VM can be started, and data is intact
+  - _Test Scenario:_ [Tier 2] Verify backup and restore of a stopped VM with filesystem volume mode DataVolume using Velero DataMover; confirm the restored VM's resource configuration and DataVolume storage attributes (size, StorageClass, volume mode) match the original, the VM is restored powered off (not auto-started) and can then be started, and data is intact
   - _Priority:_ P0
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want a Velero backup of a stopped VM to fail with a clear, actionable error when OADP/DataMover is unavailable, so that I'm not left with a silent failure or orphaned backup resources
-  - _Test Scenario:_ [Tier 2] Verify that a Velero backup of a stopped VM, with either block or filesystem volume mode DataVolume, ends in a non-successful phase (PartiallyFailed or Failed) with a failure condition identifying the unavailable OADP/DataMover dependency, and that no orphaned backup resources (Backup, VolumeSnapshot/VolumeSnapshotContent, or DataUpload objects) remain in the cluster
+  - _Test Scenario:_ [Tier 2] Verify that a Velero backup of a stopped VM, with either block or filesystem volume mode DataVolume, ends in a non-successful phase (PartiallyFailed or Failed) with a failure condition identifying the unavailable OADP/DataMover dependency, and that the failed backup leaves no leftover backup artifacts behind
   - _Priority:_ P0
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want restoring a stopped VM from a backup with a missing or corrupted DataVolume snapshot to fail clearly, so that I don't end up with a VM that has unbootable or missing storage
@@ -321,15 +324,15 @@ The following conditions must be met before testing can begin:
   - _Priority:_ P1
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want to back up and restore a stopped VM with a WFFC StorageClass DataVolume via Velero DataMover, so that the restored VM starts successfully with correct storage binding
-  - _Test Scenario:_ [Tier 2] Verify backup and restore of a stopped VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored PVC/PV binds through the configured WaitForFirstConsumer StorageClass and the restored VM can be started
+  - _Test Scenario:_ [Tier 2] Verify backup and restore of a stopped VM with WFFC StorageClass DataVolume using Velero DataMover; confirm the restored PVC/PV binds through the configured WaitForFirstConsumer StorageClass, and the restored VM comes up powered off (not auto-started) and can then be started
   - _Priority:_ P1
 
 - **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want data written to a VM before backup to be readable after restore, so that I can trust Velero backups for both stopped VM and WFFC configurations
   - _Test Scenario:_ [Tier 2] Verify data written to a VM before backup is readable after restore for both stopped VM and WFFC configurations
   - _Priority:_ P1
 
-- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want a restored stopped VM with a WFFC DataVolume to start with storage provisioned in the expected topology zone, so that zone-local data locality is preserved after restore
-  - _Test Scenario:_ [Tier 2] Verify that a restored stopped VM with a WFFC DataVolume starts with storage provisioned in the expected topology zone (bound PV's zone label matches the source zone)
+- **[CNV-44308](https://redhat.atlassian.net/browse/CNV-44308)** -- As a cluster admin, I want a restored stopped VM with a WFFC DataVolume to start with its storage bound in the same zone as the node where it is scheduled, so that zone-local data access is preserved after restore
+  - _Test Scenario:_ [Tier 2] Verify that a restored stopped VM with a WFFC DataVolume starts successfully and its WFFC PV binds in a zone consistent with the node where the VM is scheduled (the bound PV's zone label matches the scheduling node's zone), demonstrating zone-local storage after restore
   - _Priority:_ P2
 
 ---
